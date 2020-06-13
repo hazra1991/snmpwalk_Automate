@@ -1,6 +1,6 @@
 from threading import Thread, Lock
 import os,json,sys
-
+thread_count = 660
 thread_lock = Lock()
 def check_ip(ip):
     try:
@@ -42,6 +42,8 @@ def thread_fun(ip,cm_string):
 
 
 def main(ip_file_name=None,community_list=()):
+    import time
+    time.sleep(2)
     try:
         with open(ip_file_name,"r") as fd:
             fp = open("invalid_ip_found.txt", "w")
@@ -51,7 +53,7 @@ def main(ip_file_name=None,community_list=()):
                     th = Thread(target=thread_fun, args=(i,community_list))
                     th.start()
                     thread_pool.append(th)
-                    if len(thread_pool) == 600:
+                    if len(thread_pool) == thread_count:
                         for thr in thread_pool[::-1]:
                             thr.join()
                             thread_pool.pop()
@@ -73,7 +75,16 @@ def main(ip_file_name=None,community_list=()):
 
 if __name__== "__main__":
     version = sys.version_info[0:2]
-    print("---->> STARTING SEARCH\n---->> LOADING IP ADDRESS \n---->> LOADING COMMUNITY STRINGS")
+    try:
+        if len(sys.argv) == 2:
+            thread_count = int(sys.argv[1])
+        print("Thread assigned ::-- ", thread_count)
+    except ValueError:
+        print("[[FATAL ERROR]] Enter a proper numeric positive value for thread count\n----> CAUTION entering " +
+              "inappropriate values can cause the program to crash.Leave the field blank if unclear \n")
+        exit(0)
+
+    print("---->> STARTING SEARCH\n---->> LOADING IP ADDRESS \n---->> LOADING COMMUNITY STRINGS\n")
     try:
         cs = tuple(json.load(open("community_string.json",'r'))["community_string"])
         main("ip_file.txt",cs)
