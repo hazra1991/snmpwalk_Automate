@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from threading import Thread, Lock
 import os,json,sys
 thread_count = 500
@@ -7,7 +9,7 @@ def check_ip(ip):
         ip_list = ip.strip().strip("\n").split(".")
         if len(ip_list) == 4 :
             for i in ip_list:
-                if " " in i or int(i)>255:
+                if " " in i or int(i)>255 or int(i) < 0 or '+' in i:
                     raise ValueError
             return True
     except ValueError:
@@ -28,7 +30,7 @@ def thread_fun(ip,cm_string):
                 thread_lock.release()
                 return
 
-    ping_cmd = "ping -W 1 -c 2 " + ip
+    ping_cmd = "ping -W 2 -c 2 " + ip
     x = os.system(ping_cmd)
 
     thread_lock.acquire()
@@ -43,8 +45,8 @@ def thread_fun(ip,cm_string):
 
 def main(ip_file_name=None,community_list=()):
     import time
+    print("---->> LOADING IP FILE")
     time.sleep(2)
-    print("{}Starting with {} thread workers{}".format(15*'*',thread_count,15*'*'))
     try:
         with open(ip_file_name,"r") as fd:
             fp = open("invalid_ip_found.txt", "w")
@@ -57,6 +59,7 @@ def main(ip_file_name=None,community_list=()):
                     if len(thread_pool) == thread_count:
                         for thr in thread_pool[::-1]:
                             thr.join()
+                            print("tp number",len(thread_pool))
                             thread_pool.pop()
                 elif i == "\n":
                     continue
@@ -79,13 +82,15 @@ if __name__== "__main__":
     try:
         if len(sys.argv) == 2 and int(sys.argv[1]) > 0:
             thread_count = int(sys.argv[1])
+        elif len(sys.argv) != 1:
+            raise ValueError
         
     except ValueError:
         print("[[FATAL ERROR]] Enter a proper numeric positive value for thread count\n\n--> CAUTION entering " +
-              "inappropriate values can cause the program to crash.\n-->Default thread limit is 350")
+              "inappropriate values can cause the program to crash.\n--> Default thread limit is %d" % thread_count)
         exit(0)
-
-    print("---->> STARTING SEARCH\n---->> LOADING IP ADDRESS \n---->> LOADING COMMUNITY STRINGS\n")
+    print("\n{}Starting with {} thread workers{}\n".format(15 * '*', thread_count, 15 * '*'))
+    print("---->> STARTING SEARCH \n---->> LOADING COMMUNITY STRINGS\n")
     try:
         cs = tuple(json.load(open("community_string.json",'r'))["community_string"])
         main("ip_file.txt",cs)
