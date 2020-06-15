@@ -1,6 +1,6 @@
 from threading import Thread, Lock
 import os,json,sys
-thread_count = 660
+thread_count = 500
 thread_lock = Lock()
 def check_ip(ip):
     try:
@@ -46,6 +46,7 @@ def main(ip_file_name=None,community_list=()):
     time.sleep(2)
     try:
         with open(ip_file_name,"r") as fd:
+            print("{}Starting with {} thread workers{}".format(15*'*',thread_count,15*'*'))
             fp = open("invalid_ip_found.txt", "w")
             thread_pool = []
             for i in fd:
@@ -76,12 +77,13 @@ def main(ip_file_name=None,community_list=()):
 if __name__== "__main__":
     version = sys.version_info[0:2]
     try:
-        if len(sys.argv) == 2:
-            thread_count = int(sys.argv[1])
-        print("Thread assigned ::-- ", thread_count)
+        if len(sys.argv) == 2 and int(sys.argv[1]) > 0:
+            thread_count = sys.argv[1]
+        else:
+            raise ValueError
     except ValueError:
-        print("[[FATAL ERROR]] Enter a proper numeric positive value for thread count\n----> CAUTION entering " +
-              "inappropriate values can cause the program to crash.Leave the field blank if unclear \n")
+        print("[[FATAL ERROR]] Enter a proper numeric positive value for thread count\n\n--> CAUTION entering " +
+              "inappropriate values can cause the program to crash.\n-->Default thread limit is 350")
         exit(0)
 
     print("---->> STARTING SEARCH\n---->> LOADING IP ADDRESS \n---->> LOADING COMMUNITY STRINGS\n")
