@@ -44,9 +44,9 @@ def thread_fun(ip,cm_string):
 def main(ip_file_name=None,community_list=()):
     import time
     time.sleep(2)
+    print("{}Starting with {} thread workers{}".format(15*'*',thread_count,15*'*'))
     try:
         with open(ip_file_name,"r") as fd:
-            print("{}Starting with {} thread workers{}".format(15*'*',thread_count,15*'*'))
             fp = open("invalid_ip_found.txt", "w")
             thread_pool = []
             for i in fd:
@@ -78,9 +78,8 @@ if __name__== "__main__":
     version = sys.version_info[0:2]
     try:
         if len(sys.argv) == 2 and int(sys.argv[1]) > 0:
-            thread_count = sys.argv[1]
-        else:
-            raise ValueError
+            thread_count = int(sys.argv[1])
+        
     except ValueError:
         print("[[FATAL ERROR]] Enter a proper numeric positive value for thread count\n\n--> CAUTION entering " +
               "inappropriate values can cause the program to crash.\n-->Default thread limit is 350")
