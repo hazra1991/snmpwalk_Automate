@@ -3,7 +3,18 @@
 from threading import Thread, Lock
 import os,json,sys
 thread_count = 500
+success_file = 'success_file.txt'
+no_snmp_access_file = "no_snmp_access.txt"
 thread_lock = Lock()
+
+with open (no_snmp_access_file,'w') as tp:
+    pass
+with open (success_file,'w') as tp:
+    pass
+
+with open ("PID_FILE.pid",'w') as pd:
+    pd.write(str(os.getpid()))
+
 def check_ip(ip):
     try:
         ip_list = ip.strip().strip("\n").split(".")
@@ -21,24 +32,24 @@ def thread_fun(ip,cm_string):
     #TODO create a file for community strig
 
     for i in cm_string:
-        snmp_cmd = "snmpwalk -v2c -c {} {}".format(i, ip)
+        snmp_cmd = "snmpwalk -v2c -c {} {} sysName".format(i, ip.strip('\n'))
         y = os.system(snmp_cmd)
         if y == 0:
             thread_lock.acquire()
-            with open("success_file.txt", "a+") as fd:
+            with open(success_file, "a+") as fd:
                 fd.write("SNMP ACCESS ::- {}COMMUNITY STRING ::- {}\n===========\n".format(ip, i))
                 thread_lock.release()
                 return
 
-    ping_cmd = "ping -W 2 -c 2 " + ip
+    ping_cmd = "ping -W 2 -c 2 " + ip.strip('\n')
     x = os.system(ping_cmd)
 
     thread_lock.acquire()
     if x == 0:
-        with open("No_snmp_access.txt","a+") as fd:
+        with open(no_snmp_access_file,"a+") as fd:
             fd.write("ONLY PING::- {}".format(ip))
     else:
-        with open("No_snmp_access.txt","a+") as fd:
+        with open(no_snmp_access_file,"a+") as fd:
             fd.write("HOST UNREACHABLE::- {}".format(ip))
     thread_lock.release()
 
@@ -59,7 +70,6 @@ def main(ip_file_name=None,community_list=()):
                     if len(thread_pool) == thread_count:
                         for thr in thread_pool[::-1]:
                             thr.join()
-                            print("tp number",len(thread_pool))
                             thread_pool.pop()
                 elif i == "\n":
                     continue
